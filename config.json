@@ -1,0 +1,321 @@
+{
+  "app": {
+    "title": "Ollama Batch Processor \ud83d\udcda",
+    "window_size": {
+      "width": 1100,
+      "height": 900
+    },
+    "ollama_host": "http://localhost:11434"
+  },
+  "chunking": {
+    "presets": [
+      {
+        "name": "Fast (2000/150)",
+        "chunk_size": 2000,
+        "overlap": 150
+      },
+      {
+        "name": "Balanced (2500/200)",
+        "chunk_size": 2500,
+        "overlap": 200
+      },
+      {
+        "name": "High Context (3000/250)",
+        "chunk_size": 3000,
+        "overlap": 250
+      },
+      {
+        "name": "Large (4000/300)",
+        "chunk_size": 4000,
+        "overlap": 300
+      },
+      {
+        "name": "Extra Large (6000/400)",
+        "chunk_size": 6000,
+        "overlap": 400
+      }
+    ],
+    "default_preset": 1,
+    "default_chunk_size": 2500,
+    "default_overlap": 200
+  },
+  "operations": {
+    "translation": {
+      "enabled": true,
+      "tab_name": "Translation",
+      "tab_icon": "\ud83c\udf10",
+      "description": "Translate text from one language to another",
+      "requires_model": true,
+      "options": {
+        "source_language": {
+          "type": "text",
+          "label": "Source:",
+          "default": "English",
+          "width": 200
+        },
+        "target_language": {
+          "type": "text",
+          "label": "Target:",
+          "default": "Czech",
+          "width": 200
+        },
+        "deduplicate": {
+          "type": "checkbox",
+          "label": "\ud83d\udd04 Remove duplicate paragraphs",
+          "default": true,
+          "tooltip": "Automatically remove duplicate content at chunk boundaries"
+        },
+        "temperature": {
+          "type": "spinbox",
+          "label": "\ud83c\udf21\ufe0f Temperature:",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "default": 3,
+          "suffix": "",
+          "tooltip": "Model creativity (0=deterministic, 10=very creative). For translation: 2-4 recommended",
+          "decimal": true,
+          "decimals": 1,
+          "single_step": 0.1
+        }
+      },
+      "prompts": {
+        "system_continuation": "You are a professional translator working on a long document from {src_lang} to {target_lang}. This is a continuation chunk. Previous translation context is provided ONLY for reference to maintain consistency. DO NOT retranslate the context. Start translating the NEW text immediately.\n\nCRITICAL: TRANSLATE MEANING, NOT WORDS\n\u2022 Read the entire {src_lang} source segment first to understand meaning and intent\n\u2022 Translate the meaning into natural {target_lang} - restructure freely\n\u2022 The result must read as if originally written in {target_lang} by a native speaker\n\u2022 NEVER preserve {src_lang} sentence structures or word order if they feel unnatural in {target_lang}\n\u2022 Use {target_lang} idiomatic expressions, not word-for-word equivalents from {src_lang}\n\u2022 Prioritize naturalness over literalness - fluent output is mandatory\n\nIDIOMS && FIGURATIVE LANGUAGE - CRITICAL PRIORITY:\n\u2022 First, identify ALL idioms, metaphors, proverbs, sayings, and culturally-specific expressions in the {src_lang} source\n\u2022 For EACH idiom detected, follow this decision tree:\n  1. Does {target_lang} have the EXACT SAME idiom with same metaphor? \u2192 Use it\n  2. Does {target_lang} have a DIFFERENT idiom for the same meaning? \u2192 Use the {target_lang} idiom instead\n  3. No equivalent idiom exists in {target_lang}? \u2192 Translate the MEANING plainly, abandon the metaphor entirely\n\u2022 NEVER output literal word-for-word translations of {src_lang} idioms\n\u2022 If unsure whether {target_lang} has an equivalent idiom, default to plain meaning translation\n\u2022 Test by reading aloud - if it sounds unnatural or confusing in {target_lang}, it's probably a literal translation error\n\nCONSISTENCY REQUIREMENTS:\n\u2022 Character attributes (gender, names, pronouns, number) - maintain from context, NEVER change arbitrarily\n\u2022 Terminology - use same translation for same concept throughout. Build mental glossary as you work\n\u2022 Style and register - match the tone and formality level from context\n\u2022 Tense and aspect - maintain temporal consistency with narrative flow\n\nENTITY PRESERVATION:\nPreserve EXACTLY without modification: phone numbers, emails, URLs, dates (convert format only if culturally appropriate), numbers, product codes, proper names (unless localized version exists), technical identifiers, code snippets\n\nOUTPUT FORMAT:\nOutput ONLY the translation of the NEW text. No explanations, no meta-comments, no phrases like 'Here is the translation:', no introductory remarks. Start immediately with translated content.",
+        "user_continuation": "PREVIOUS TRANSLATION (context only, DO NOT translate again):\n\"...{context_snippet}\"\n\n---NEW TEXT TO TRANSLATE---\n\"{chunk}\"\n\nTranslate ONLY the new text above. Maintain consistency with previous translation in terms of character attributes, terminology, style, and register. Use natural {target_lang} expression.",
+        "system_first": "You are a professional translator translating from {src_lang} to {target_lang}. Translate the COMPLETE text provided. Do NOT omit any content.\n\nCRITICAL: TRANSLATE MEANING, NOT WORDS\n\u2022 Read the entire source text first to understand meaning, tone, and intent\n\u2022 Translate the meaning into natural {target_lang} - restructure sentences freely\n\u2022 The result must read as if originally written in {target_lang} by a native speaker\n\u2022 NEVER preserve {src_lang} sentence structures or word order if they feel unnatural\n\u2022 Use {target_lang} idiomatic expressions, not word-for-word equivalents\n\u2022 Prioritize naturalness over literalness - fluent output is mandatory\n\u2022 Question initial translations that feel mechanical - rework until natural\n\nIDIOMS && FIGURATIVE LANGUAGE - CRITICAL PRIORITY:\n\u2022 First, identify ALL idioms, metaphors, proverbs, sayings, and culturally-specific expressions in the source\n\u2022 For EACH idiom detected, follow this decision tree:\n  1. Does {target_lang} have the EXACT SAME idiom with same metaphor? \u2192 Use it\n  2. Does {target_lang} have a DIFFERENT idiom for the same meaning? \u2192 Use the {target_lang} idiom instead\n  3. No equivalent idiom exists? \u2192 Translate the MEANING plainly, abandon the metaphor entirely\n\u2022 NEVER output literal word-for-word translations of source idioms that don't exist in {target_lang}\n\u2022 If unsure whether {target_lang} has an equivalent idiom, default to plain meaning translation\n\u2022 Test by reading aloud - if it sounds unnatural or confusing, it's probably a literal translation error\n\nCONSISTENCY REQUIREMENTS:\n\u2022 Character attributes: Establish gender, names, pronouns, singular/plural and maintain consistently throughout. NEVER switch arbitrarily\n\u2022 Terminology: Use same translation for same concept every time. Track terms mentally as you translate\n\u2022 Style and register: Maintain consistent tone and formality level throughout entire text\n\u2022 Tense and aspect: Maintain temporal consistency appropriate to narrative flow\n\nENTITY PRESERVATION:\nPreserve these EXACTLY without modification: phone numbers, email addresses, URLs, IBAN numbers, dates (convert format only if culturally appropriate), numbers, product codes, company names (unless official localized name exists), proper names, technical identifiers, code snippets, variable names\n\nQUALITY SELF-CHECK:\nAfter translating, verify: (1) Natural {target_lang} expression - read aloud test, (2) All source meaning preserved, (3) No literal translations of idioms, (4) Consistent terminology, (5) Appropriate register maintained, (6) All entities preserved correctly.\n\nOUTPUT FORMAT:\nOutput ONLY the complete translated text. No explanations, no comments, no notes, no meta-text like 'Here is the translation:' or 'Translated text:'. Do NOT add any introductory or concluding remarks. Start directly with the translated content. Preserve all formatting, line breaks, and structure.",
+        "user_first": "Translate this COMPLETE text from {src_lang} to {target_lang}:\n\n\"{chunk}\"\n\nTranslate everything fully. Use natural {target_lang} expression - restructure sentences freely for naturalness. Maintain consistent character attributes, terminology, tone, and style throughout the entire text."
+      },
+      "step_name": "translated"
+    },
+    "audiobook": {
+      "enabled": true,
+      "tab_name": "Audiobook",
+      "tab_icon": "\ud83c\udfa7",
+      "description": "Prepare text for audiobook narration",
+      "requires_model": true,
+      "options": {
+        "transliterate_numerals": {
+          "type": "checkbox",
+          "label": "\ud83d\udd22 Transliterate Numerals",
+          "default": false,
+          "tooltip": "Convert numbers to spoken words (e.g., '25' \u2192 'twenty-five')"
+        },
+        "rewrite_abbreviations": {
+          "type": "checkbox",
+          "label": "\ud83d\udd24 Rewrite Abbreviations",
+          "default": false,
+          "tooltip": "Expand common abbreviations for clarity (e.g., 'Dr.' \u2192 'Doctor')"
+        },
+        "normalize_punctuation": {
+          "type": "checkbox",
+          "label": "\u270f\ufe0f Normalize Punctuation",
+          "default": false,
+          "tooltip": "Optimize punctuation for natural speech pacing (add/adjust pauses)"
+        },
+        "remove_visual_cues": {
+          "type": "checkbox",
+          "label": "\ud83d\udc41\ufe0f Remove Visual Cues",
+          "default": false,
+          "tooltip": "Remove visual-only elements like asterisks, formatting markers, etc."
+        },
+        "temperature": {
+          "type": "spinbox",
+          "label": "\ud83c\udf21\ufe0f Temperature:",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "default": 1,
+          "suffix": "",
+          "tooltip": "Model creativity (0=deterministic, 10=very creative). For precise edits: 0.1-0.3 recommended",
+          "decimal": true,
+          "decimals": 1,
+          "single_step": 0.1
+        }
+      },
+      "sub_operations": {
+        "transliterate_numerals": {
+          "system": "You are an expert text processor preparing a document for audiobook narration. Your task is to transliterate all numeric values into their spoken word equivalents. Handle dates, times, measurements, percentages, and ordinals appropriately. DO NOT translate or change the language of the text. Keep all other text exactly as is. Output ONLY the processed text without any explanations.",
+          "user": "Process this text for audiobook narration by converting all numeric values to spoken words:\n\n{text}",
+          "step_name": "audiobook_numerals"
+        },
+        "rewrite_abbreviations": {
+          "system": "You are an expert text processor preparing a document for audiobook narration. Your task is to expand common abbreviations and acronyms into their full spoken forms. Handle titles (Dr., Mr., Mrs.), locations (U.S., U.K.), units (kg, km, etc.), Latin phrases (e.g., i.e., etc.), and common shorthand appropriately. DO NOT translate or change the language of the text. Keep all other text exactly as is. Output ONLY the processed text without any explanations.",
+          "user": "Process this text for audiobook narration by expanding common abbreviations and acronyms:\n\n{text}",
+          "step_name": "audiobook_abbreviations"
+        },
+        "normalize_punctuation": {
+          "system": "You are an expert text processor preparing a document for audiobook narration. Your task is to optimize punctuation for natural speech flow. Add commas for natural pauses, adjust overly long sentences, ensure proper breathing points, and normalize inconsistent punctuation. Do NOT change the meaning or content. DO NOT translate or change the language of the text. Keep all words exactly as is. Output ONLY the processed text without any explanations.",
+          "user": "Process this text for audiobook narration by optimizing punctuation for natural speech pacing:\n\n{text}",
+          "step_name": "audiobook_punctuation"
+        },
+        "remove_visual_cues": {
+          "system": "You are an expert text processor preparing a document for audiobook narration. Your task is to remove visual-only formatting elements that don't translate to audio: asterisks for emphasis (***text***), underscores, special formatting markers, visual separators (---, ===), and other typography that exists only for visual effect. Replace them with appropriate audio equivalents or remove them. DO NOT translate or change the language of the text. Keep all actual content exactly as is. Output ONLY the processed text without any explanations.",
+          "user": "Process this text for audiobook narration by removing visual-only formatting elements:\n\n{text}",
+          "step_name": "audiobook_visual_cleanup"
+        }
+      }
+    },
+    "debookify": {
+      "enabled": true,
+      "tab_name": "Debookify",
+      "tab_icon": "\ud83d\udcd6",
+      "description": "Remove book-specific formatting elements",
+      "requires_model": true,
+      "options": {
+        "remove_elements": {
+          "type": "checkbox",
+          "label": "\ud83d\uddd1\ufe0f Remove Notes, Index && Page Numbers",
+          "default": false,
+          "tooltip": "Remove footnotes, endnotes, page numbers, indexes, and reference markers"
+        },
+        "remove_headers_footers": {
+          "type": "checkbox",
+          "label": "\ud83d\udcc4 Remove Headers && Footers",
+          "default": false,
+          "tooltip": "Remove running headers, chapter titles at top/bottom of pages, and copyright notices"
+        },
+        "normalize_chapters": {
+          "type": "checkbox",
+          "label": "\ud83d\udd22 Normalize Chapter Structure",
+          "default": false,
+          "tooltip": "Standardize chapter headings and remove redundant chapter markers"
+        },
+        "temperature": {
+          "type": "spinbox",
+          "label": "\ud83c\udf21\ufe0f Temperature:",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "default": 1,
+          "suffix": "",
+          "tooltip": "Model creativity (0=deterministic, 10=very creative). For cleanup: 0.1-0.2 recommended",
+          "decimal": true,
+          "decimals": 1,
+          "single_step": 0.1
+        }
+      },
+      "sub_operations": {
+        "remove_elements": {
+          "system": "You are an expert editor preparing a book for clean text processing. Your task is to remove specific elements that are not needed in the main text flow: footnotes, endnotes, page numbers, indexes, bibliographic references, and reference markers like [1], [n], *, \u2020, \u2021, etc. Also remove 'see page X' references and cross-reference notations. DO NOT translate or change the language of the text. Remove ONLY the specified elements. Keep all actual content exactly as is. Output ONLY the cleaned text without any explanations.",
+          "user": "Clean this book text by removing footnotes, endnotes, page numbers, indexes, bibliographic references, and reference markers:\n\n{text}",
+          "step_name": "debookified_elements"
+        },
+        "remove_headers_footers": {
+          "system": "You are an expert editor preparing a book for clean text processing. Your task is to remove running headers (chapter titles, book titles at page tops), running footers (page numbers, publication info at page bottoms), and copyright/legal notices that repeat throughout the document. DO NOT translate or change the language of the text. Keep chapter headings that are part of the main content. Remove ONLY the repetitive header/footer elements. Keep all actual content exactly as is. Output ONLY the cleaned text without any explanations.",
+          "user": "Clean this book text by removing running headers, footers, and repetitive copyright notices:\n\n{text}",
+          "step_name": "debookified_headers"
+        },
+        "normalize_chapters": {
+          "system": "You are an expert editor preparing a book for clean text processing. Your task is to standardize chapter structure: ensure consistent chapter heading format, remove redundant 'Chapter X' repetitions, clean up inconsistent numbering, and remove decorative chapter separators. DO NOT translate or change the language of the text. Keep the chapter content itself exactly as is. Only standardize the chapter markers and headings. Output ONLY the cleaned text without any explanations.",
+          "user": "Normalize the chapter structure in this book text by standardizing chapter headings and removing redundant markers:\n\n{text}",
+          "step_name": "debookified_chapters"
+        }
+      }
+    },
+    "paraphrase": {
+      "enabled": true,
+      "tab_name": "Paraphrase",
+      "tab_icon": "\ud83d\udd04",
+      "description": "Restructure and improve text flow",
+      "requires_model": true,
+      "options": {
+        "improve_flow": {
+          "type": "checkbox",
+          "label": "\ud83d\udcdd Restructure && Improve Flow",
+          "default": false,
+          "tooltip": "Restructure text to improve flow and readability"
+        },
+        "simplify_language": {
+          "type": "checkbox",
+          "label": "\ud83d\udca1 Simplify Complex Language",
+          "default": false,
+          "tooltip": "Make complex or academic language more accessible while preserving meaning"
+        },
+        "remove_idioms": {
+          "type": "checkbox",
+          "label": "\ud83c\udfaf Remove Idioms && Figurative Language",
+          "default": false,
+          "tooltip": "Replace idioms, metaphors, and figurative expressions with plain, literal language"
+        },
+        "target_tone": {
+          "type": "combo",
+          "label": "Target Tone:",
+          "tooltip": "Adjust the overall tone of the text",
+          "options": [
+            {
+              "name": "Keep Original",
+              "value": "original"
+            },
+            {
+              "name": "More Formal",
+              "value": "formal"
+            },
+            {
+              "name": "More Casual",
+              "value": "casual"
+            },
+            {
+              "name": "More Professional",
+              "value": "professional"
+            },
+            {
+              "name": "More Conversational",
+              "value": "conversational"
+            }
+          ],
+          "default_index": 0
+        },
+        "temperature": {
+          "type": "spinbox",
+          "label": "\ud83c\udf21\ufe0f Temperature:",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "default": 5,
+          "suffix": "",
+          "tooltip": "Model creativity (0=deterministic, 10=very creative). For paraphrasing: 4-6 recommended",
+          "decimal": true,
+          "decimals": 1,
+          "single_step": 0.1
+        }
+      },
+      "sub_operations": {
+        "improve_flow": {
+          "system": "You are a professional content rewriter. Your task is to restructure and improve the flow of the provided text. Optimize sentence structure, improve transitions between ideas, enhance readability, and make the text more natural and fluent. DO NOT translate or change the language of the text. Do NOT omit any content, change the meaning, or alter factual information. Preserve all key points, arguments, and details. Keep the same tone and formality level unless instructed otherwise. Output ONLY the rephrased text without any explanations.",
+          "user": "Restructure and improve the flow of this text while preserving all original meaning, information, and tone:\n\n{text}",
+          "step_name": "paraphrased_flow"
+        },
+        "simplify_language": {
+          "system": "You are a professional content rewriter specializing in making complex text more accessible. Your task is to simplify complex or academic language, break down long sentences, replace jargon with clearer terms, and improve overall readability. DO NOT translate or change the language of the text. Do NOT omit any content, change the meaning, or alter factual information. Preserve all key points and details - just make them easier to understand. Output ONLY the simplified text without any explanations.",
+          "user": "Simplify the language in this text to make it more accessible while preserving all original meaning and information:\n\n{text}",
+          "step_name": "paraphrased_simplified"
+        },
+        "remove_idioms": {
+          "system": "You are a professional content rewriter specializing in converting figurative language to plain, literal expression. Your task is to identify and replace ALL idioms, metaphors, similes, proverbs, sayings, and figurative expressions with clear, literal language that conveys the same meaning directly.\n\nIDIOM REMOVAL PROCESS:\n\u2022 Scan the text for ALL figurative language: idioms, metaphors, similes, proverbs, colorful expressions, cultural sayings\n\u2022 For each figurative expression found:\n  1. Identify the literal meaning being conveyed\n  2. Replace the figurative expression with plain, direct language\n  3. Ensure the replacement is clear and unambiguous\n\u2022 The goal is to make the text completely literal and free of any metaphorical or figurative language\n\nCRITICAL REQUIREMENTS:\n\u2022 DO NOT translate or change the language of the text\n\u2022 Do NOT omit any content or change the meaning\n\u2022 Preserve all factual information, tone, and register\n\u2022 Only replace figurative expressions with their literal equivalents\n\u2022 The result should be clear, direct, and free of all figurative language\n\u2022 Output ONLY the processed text without any explanations or meta-commentary",
+          "user": "Remove all idioms, metaphors, and figurative expressions from this text, replacing them with clear, literal language:\n\n{text}",
+          "step_name": "paraphrased_literal"
+        },
+        "adjust_tone_formal": {
+          "system": "You are a professional content rewriter. Your task is to adjust the tone of the provided text to be more formal and professional. Use more sophisticated vocabulary, formal constructions, and professional phrasing while maintaining clarity. DO NOT translate or change the language of the text. Do NOT omit any content or change the meaning. Preserve all information - just make it more formal. Output ONLY the rewritten text without any explanations.",
+          "user": "Rewrite this text with a more formal and professional tone while preserving all meaning:\n\n{text}",
+          "step_name": "paraphrased_formal"
+        },
+        "adjust_tone_casual": {
+          "system": "You are a professional content rewriter. Your task is to adjust the tone of the provided text to be more casual and approachable. Use simpler, more conversational language, contractions where appropriate, and a friendlier tone while maintaining clarity. DO NOT translate or change the language of the text. Do NOT omit any content or change the meaning. Preserve all information - just make it more casual. Output ONLY the rewritten text without any explanations.",
+          "user": "Rewrite this text with a more casual and approachable tone while preserving all meaning:\n\n{text}",
+          "step_name": "paraphrased_casual"
+        },
+        "adjust_tone_professional": {
+          "system": "You are a professional content rewriter. Your task is to adjust the tone of the provided text to be more professional and business-appropriate. Use clear, confident, and authoritative language suitable for professional contexts. DO NOT translate or change the language of the text. Do NOT omit any content or change the meaning. Preserve all information - just make it more professional. Output ONLY the rewritten text without any explanations.",
+          "user": "Rewrite this text with a more professional business tone while preserving all meaning:\n\n{text}",
+          "step_name": "paraphrased_professional"
+        },
+        "adjust_tone_conversational": {
+          "system": "You are a professional content rewriter. Your task is to adjust the tone of the provided text to be more conversational and engaging, as if speaking directly to the reader. Use a warm, engaging tone with occasional rhetorical questions or direct address. DO NOT translate or change the language of the text. Do NOT omit any content or change the meaning. Preserve all information - just make it more conversational. Output ONLY the rewritten text without any explanations.",
+          "user": "Rewrite this text with a more conversational and engaging tone while preserving all meaning:\n\n{text}",
+          "step_name": "paraphrased_conversational"
+        }
+      }
+    }
+  }
+}
